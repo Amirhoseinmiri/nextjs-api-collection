@@ -81,34 +81,43 @@ export const PATCH = async (req: Request) => {
   }
 };
 
-export const DELETE = async (req: Request) => {
+export const DELETE = async (request: Request) => {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId ");
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
 
     if (!userId) {
-      return new NextResponse(JSON.stringify({ message: "ID not Found" }), {
+      return new NextResponse(JSON.stringify({ message: "ID not found" }), {
         status: 400,
       });
     }
 
     if (!Types.ObjectId.isValid(userId)) {
-      return new NextResponse(JSON.stringify({ message: "Inavlid User id" }), {
+      return new NextResponse(JSON.stringify({ message: "Invalid User id" }), {
         status: 400,
       });
     }
-    await connect();
-    const deleteUser = await User.findByIdAndDelete(new Types.ObjectId(userId));
 
-    if (!deleteUser) {
+    await connect();
+
+    const deletedUser = await User.findByIdAndDelete(
+      new Types.ObjectId(userId)
+    );
+
+    if (!deletedUser) {
       return new NextResponse(
-        JSON.stringify({ message: "User not Found in database" })
+        JSON.stringify({ message: "User not found in the database" }),
+        { status: 400 }
       );
     }
-    return new NextResponse(JSON.stringify({ message: "User is updated." }), {
-      status: 200,
+
+    return new NextResponse(
+      JSON.stringify({ message: "User is deleted", user: deletedUser }),
+      { status: 200 }
+    );
+  } catch (error: any) {
+    return new NextResponse("Error in deleting user" + error.message, {
+      status: 500,
     });
-  } catch (error) {
-    return;
   }
 };
